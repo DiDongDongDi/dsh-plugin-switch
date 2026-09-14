@@ -209,10 +209,13 @@ window.__ModuleLoader__.load({
                     })
                     .then(function (pair) {
                         if (!pair.res.ok || !pair.data.ok) {
-                            throw new Error(
+                            var msg =
+                                (lang === "zh" &&
+                                    pair.data &&
+                                    pair.data.errorZh) ||
                                 (pair.data && pair.data.error) ||
-                                    "HTTP " + pair.res.status,
-                            );
+                                "HTTP " + pair.res.status;
+                            throw new Error(msg);
                         }
                         setItems(function (prev) {
                             if (!prev) return prev;
