@@ -25,6 +25,20 @@ const SELF_IDS = new Set(["plugin-switch"]);
 const SELF_NAMES = new Set(["dsh-plugin-switch"]);
 
 /**
+ * Ids that must stay enabled: other entries inject their provided services,
+ * and disabling them leaves web boot pending forever ("Failed to load plugins").
+ * Re-enable is always allowed (recovery path).
+ */
+export const DISABLE_BLOCKED = {
+    "ui-sidebar-right": {
+        reasonZh:
+            "禁止禁用：ui-chat / documentpreview / files 依赖 sidebarRight(Tabs)；禁后会 Failed to load plugins",
+        reasonEn:
+            "Cannot disable: ui-chat / documentpreview / files inject sidebarRight(Tabs); boot fails with pending entries",
+    },
+};
+
+/**
  * Optional display / risk annotations. Unknown ids still appear; they fall
  * back to module name as title.
  */
@@ -32,22 +46,24 @@ export const META = {
     "ui-sidebar-right": {
         titleZh: "官方右侧栏",
         titleEn: "Official right sidebar",
-        noteZh: "含会话头右上角「展开侧栏」按钮",
-        noteEn: "Includes the header expand button",
-        risk: "normal",
+        noteZh:
+            "提供 sidebarRight / sidebarRightTabs；含会话头「展开侧栏」按钮。禁用会拖垮 chat，已锁定。",
+        noteEn:
+            "Provides sidebarRight / sidebarRightTabs (incl. header expand). Disabling bricks chat — locked.",
+        risk: "high",
     },
     "ui-sidebar-documentpreview": {
         titleZh: "官方文档预览",
         titleEn: "Official document preview",
-        noteZh: "右侧栏文档 / Markdown 预览 tab",
-        noteEn: "Document / Markdown preview tab",
+        noteZh: "右侧栏文档 / Markdown 预览 tab（依赖 sidebarRightTabs）",
+        noteEn: "Document / Markdown preview tab (needs sidebarRightTabs)",
         risk: "normal",
     },
     "ui-sidebar-files": {
         titleZh: "官方文件树",
         titleEn: "Official files tree",
-        noteZh: "右侧栏工作区文件树 tab",
-        noteEn: "Workspace file-tree tab",
+        noteZh: "右侧栏工作区文件树 tab（依赖 sidebarRightTabs）",
+        noteEn: "Workspace file-tree tab (needs sidebarRightTabs)",
         risk: "normal",
     },
     "ui-sidebar": {
@@ -161,17 +177,22 @@ export function collectToggleItems(loader) {
         if (isSelfEntry(id, moduleName)) continue;
 
         const meta = META[id] || {};
+        const block = DISABLE_BLOCKED[id];
         const titleFallback = moduleName || id;
+        const noteZh = block?.reasonZh || meta.noteZh || "";
+        const noteEn = block?.reasonEn || meta.noteEn || "";
         items.push({
             id,
             name: moduleName,
             titleZh: meta.titleZh || titleFallback,
             titleEn: meta.titleEn || titleFallback,
-            noteZh: meta.noteZh || "",
-            noteEn: meta.noteEn || "",
-            risk: meta.risk || "normal",
+            noteZh,
+            noteEn,
+            risk: block ? "high" : meta.risk || "normal",
             enabled: !entry.disabled,
             present: true,
+            // Can always turn ON (recovery); blocked ids cannot turn OFF.
+            canDisable: !block,
             toggleable: true,
         });
     }
@@ -321,6 +342,16 @@ export function apply(ctx, config = {}) {
                             writeJson(res, 400, {
                                 ok: false,
                                 error: "refusing to toggle self",
+                            });
+                            return;
+                        }
+
+                        const block = DISABLE_BLOCKED[id];
+                        if (enabled === false && block) {
+                            writeJson(res, 400, {
+                                ok: false,
+                                error: block.reasonEn,
+                                errorZh: block.reasonZh,
                             });
                             return;
                         }

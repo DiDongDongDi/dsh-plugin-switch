@@ -1,43 +1,43 @@
 {
-  "name": "dsh-plugin-switch",
-  "version": "0.2.0",
-  "description": "DSH Web settings tab to enable/disable all loader plugins via profile cordis.patch.yml overlays.",
-  "keywords": [
-    "deepseek-harness",
-    "dsh",
-    "dsh-plugin",
-    "cordis",
-    "settings",
-    "plugin-toggle"
-  ],
-  "license": "MIT",
-  "type": "module",
-  "main": "index.js",
-  "exports": {
-    ".": "./index.js",
-    "./client": "./client.js",
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "index.js",
-    "client.js",
-    "cordis.patch.yml",
-    "README.zh.md",
-    "LICENSE"
-  ],
-  "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
+    "name": "dsh-plugin-switch",
+  "version": "0.2.1",
+  "description": "DSH Web settings tab to enable/disable loader plugins via profile cordis.patch.yml overlays (blocks disabling ui-sidebar-right).",
+    "keywords": [
+        "deepseek-harness",
+        "dsh",
+        "dsh-plugin",
+        "cordis",
+        "settings",
+        "plugin-toggle"
+    ],
+    "license": "MIT",
+    "type": "module",
+    "main": "index.js",
+    "exports": {
+        ".": "./index.js",
+        "./client": "./client.js",
+        "./package.json": "./package.json"
     },
-    "client": {
-      "platform": "web"
+    "files": [
+        "index.js",
+        "client.js",
+        "cordis.patch.yml",
+        "README.zh.md",
+        "LICENSE"
+    ],
+    "dsh": {
+        "bundle": {
+            "patch": "./cordis.patch.yml"
+        },
+        "client": {
+            "platform": "web"
+        }
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DiDongDongDi/dsh-plugin-switch.git"
     }
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/DiDongDongDi/dsh-plugin-switch.git"
-  }
 }

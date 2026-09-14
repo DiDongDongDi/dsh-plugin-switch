@@ -35,6 +35,7 @@ pnpm update dsh-plugin-switch
 ## 注意
 
 - 不会关 `plugin-switch` / `dsh-plugin-switch` 自己
+- **`ui-sidebar-right` 禁止禁用**：`ui-chat` 等依赖 `sidebarRight` / `sidebarRightTabs`，禁后会 `Failed to load plugins`（pending）。若已误关，把 profile `cordis.patch.yml` 里对应 overlay 改成 `disabled: false` 或删掉该块，再重启
 - 禁核心插件可能导致界面残缺或启动异常；高风险项会标红边
 - 禁 `ui-sidebar` 可能导致没有会话列表
-- 禁 `ui-sidebar-right` 会去掉右上角展开侧栏按钮及官方右栏
+- 想去掉右上角「展开侧栏」按钮：不能靠关整个 `ui-sidebar-right`，需另做 CSS/seat 隐藏方案

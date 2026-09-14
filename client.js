@@ -63,6 +63,7 @@ window.__ModuleLoader__.load({
             emptyFilter: "没有匹配的插件",
             count: "共 {n} 个",
             riskHigh: "高风险",
+            locked: "禁禁用",
             error: "操作失败",
             enabled: "已启用",
             disabled: "已禁用",
@@ -77,6 +78,7 @@ window.__ModuleLoader__.load({
             emptyFilter: "No matching plugins",
             count: "{n} plugins",
             riskHigh: "High risk",
+            locked: "Disable locked",
             error: "Failed",
             enabled: "Enabled",
             disabled: "Disabled",
@@ -244,6 +246,8 @@ window.__ModuleLoader__.load({
                 var title = lang === "zh" ? row.titleZh : row.titleEn;
                 var note = lang === "zh" ? row.noteZh : row.noteEn;
                 var checked = row.enabled === true;
+                var canDisable = row.canDisable !== false;
+                var lockOff = checked && !canDisable;
                 var idLine =
                     row.name && row.name !== row.id
                         ? row.id + " · " + row.name
@@ -270,22 +274,27 @@ window.__ModuleLoader__.load({
                                   t("riskHigh"),
                               )
                             : null,
+                        lockOff
+                            ? h(
+                                  "span",
+                                  { className: "dsh-ps-badge" },
+                                  t("locked"),
+                              )
+                            : null,
                     ),
                     h(Switch, {
                         checked: checked,
-                        disabled: !!busy[row.id],
+                        disabled: !!busy[row.id] || lockOff,
                         label: checked ? t("enabled") : t("disabled"),
                         onChange: function (next) {
+                            if (next === false && !canDisable) return;
                             setEnabled(row.id, next);
                         },
                     }),
                 );
             });
 
-            var countLabel = t("count").replace(
-                "{n}",
-                String(filtered.length),
-            );
+            var countLabel = t("count").replace("{n}", String(filtered.length));
 
             return h(
                 "div",
@@ -331,10 +340,7 @@ window.__ModuleLoader__.load({
                 !loading && items && items.length === 0
                     ? h("div", { className: "dsh-ps-hint" }, t("empty"))
                     : null,
-                !loading &&
-                    items &&
-                    items.length > 0 &&
-                    filtered.length === 0
+                !loading && items && items.length > 0 && filtered.length === 0
                     ? h("div", { className: "dsh-ps-hint" }, t("emptyFilter"))
                     : null,
                 cards,
