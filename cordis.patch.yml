@@ -1,0 +1,4 @@
+# dsh-plugin-switch bundle patch
+- insert:
+    - id: plugin-switch
+      name: dsh-plugin-switch
