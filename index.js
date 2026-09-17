@@ -46,10 +46,8 @@ export const META = {
     "ui-sidebar-right": {
         titleZh: "官方右侧栏",
         titleEn: "Official right sidebar",
-        noteZh:
-            "提供 sidebarRight / sidebarRightTabs；含会话头「展开侧栏」按钮。禁用会拖垮 chat，已锁定。",
-        noteEn:
-            "Provides sidebarRight / sidebarRightTabs (incl. header expand). Disabling bricks chat — locked.",
+        noteZh: "提供 sidebarRight / sidebarRightTabs；含会话头「展开侧栏」按钮。禁用会拖垮 chat，已锁定。",
+        noteEn: "Provides sidebarRight / sidebarRightTabs (incl. header expand). Disabling bricks chat — locked.",
         risk: "high",
     },
     "ui-sidebar-documentpreview": {
@@ -121,8 +119,29 @@ function writeJson(res, status, payload) {
 }
 
 /**
+ * Match a top-level `- id: <id>` overlay block (until the next top-level `- `
+ * item or EOF). Includes blank lines and nested YAML so multi-line `config:`
+ * (e.g. `orientation: |`) is not truncated mid-block.
+ */
+function matchTopLevelIdBlock(raw, id) {
+    const re = new RegExp(
+        `^(- id: ${escapeRegExp(id)}\\n)((?:(?!^- ).*\\n)*)`,
+        "m",
+    );
+    const match = raw.match(re);
+    if (!match || match.index === undefined) return null;
+    return {
+        index: match.index,
+        length: match[0].length,
+        head: match[1],
+        body: match[2],
+    };
+}
+
+/**
  * Upsert top-level overlay `- id: <id>` / `disabled: <bool>` without reformatting
  * the rest of the file (MCP `insert:` block stays untouched).
+ * Preserves other keys on an existing overlay (e.g. `config:`).
  * @returns {{ changed: boolean, path: string }}
  */
 export function upsertDisabledOverlay(patchPath, id, disabled) {
@@ -132,21 +151,32 @@ export function upsertDisabledOverlay(patchPath, id, disabled) {
     let raw = readFileSync(patchPath, "utf8");
     if (!raw.endsWith("\n")) raw += "\n";
 
-    const block = `- id: ${id}\n  disabled: ${disabled}\n`;
-    // Top-level only: line starts with `- id:` (indented `  - id:` under insert is ignored).
-    const re = new RegExp(
-        `^- id: ${escapeRegExp(id)}\\n(?:  [^\\n]*\\n)*`,
-        "m",
-    );
     let changed = false;
-    if (re.test(raw)) {
-        const next = raw.replace(re, block);
-        if (next !== raw) {
-            raw = next;
+    const found = matchTopLevelIdBlock(raw, id);
+    if (found) {
+        let body = found.body;
+        if (/^  disabled:\s*(?:true|false)\s*\n/m.test(body)) {
+            const nextBody = body.replace(
+                /^  disabled:\s*(?:true|false)\s*\n/m,
+                `  disabled: ${disabled}\n`,
+            );
+            if (nextBody !== body) {
+                body = nextBody;
+                changed = true;
+            }
+        } else {
+            body = `  disabled: ${disabled}\n` + body;
             changed = true;
         }
+        if (changed) {
+            raw =
+                raw.slice(0, found.index) +
+                found.head +
+                body +
+                raw.slice(found.index + found.length);
+        }
     } else {
-        raw += block;
+        raw += `- id: ${id}\n  disabled: ${disabled}\n`;
         changed = true;
     }
 

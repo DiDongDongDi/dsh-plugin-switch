@@ -7,7 +7,7 @@
 - 设置页新增「启停」标签（与官方只读「插件列表」并列）
 - 列表来自 `loader.entries()`（跳过 group、跳过本插件自身）
 - 部分条目有展示用 META（如 `ui-sidebar` 标高风险）；未知 id 用包名当标题
-- 开关写入 `~/.dsh/profiles/web/cordis.patch.yml` 顶层 overlay（`- id:` + `disabled:`），不重排其它内容
+- 开关写入 `~/.dsh/profiles/web/cordis.patch.yml` 顶层 overlay（`- id:` + `disabled:`），**保留**同条目已有的 `config:` 等字段，不重排其它内容
 - 依赖 profile `patchReload: live` 热生效；不调用 `loader.update().write()`（避免写坏合成树）
 
 ## 安装

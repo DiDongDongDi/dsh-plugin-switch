@@ -1,7 +1,7 @@
 {
     "name": "dsh-plugin-switch",
-  "version": "0.2.1",
-  "description": "DSH Web settings tab to enable/disable loader plugins via profile cordis.patch.yml overlays (blocks disabling ui-sidebar-right).",
+    "version": "0.2.2",
+    "description": "DSH Web settings tab to enable/disable loader plugins via profile cordis.patch.yml overlays (preserves existing config; blocks disabling ui-sidebar-right).",
     "keywords": [
         "deepseek-harness",
         "dsh",
@@ -13,6 +13,9 @@
     "license": "MIT",
     "type": "module",
     "main": "index.js",
+    "scripts": {
+        "test": "node --test upsertDisabledOverlay.test.js"
+    },
     "exports": {
         ".": "./index.js",
         "./client": "./client.js",
